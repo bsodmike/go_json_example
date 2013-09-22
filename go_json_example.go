@@ -1,7 +1,7 @@
 /*
-* Michael de Silva <michael@mwdesilva.com>
-* CEO @ http://omakaselabs.com/ / https://github.com/bsodmike
-*/
+ * Michael de Silva <michael@mwdesilva.com>
+ * CEO @ http://omakaselabs.com/ / https://github.com/bsodmike
+ */
 
 package main
 
@@ -9,7 +9,18 @@ import (
   "fmt"
   "io/ioutil"
   "net/http"
+  "encoding/json"
+  "bytes"
 )
+
+// GH user type matching response JSON object.
+type GithubUser struct {
+  Login string
+  Name string
+  Email string
+  Company string
+  Blog string
+}
 
 func getContent(url string) ([]byte, error) {
   req, err := http.NewRequest("GET", url, nil)
@@ -37,9 +48,26 @@ func getContent(url string) ([]byte, error) {
   return body, nil
 }
 
+func GetGithubUser(username string) (*GithubUser, error) {
+  var buffer bytes.Buffer
+  url := "https://api.github.com/users/"
+  buffer.WriteString(url)
+  buffer.WriteString(username)
+  payload, _ := getContent(buffer.String())
+
+  var err error
+  var record GithubUser
+  err = json.Unmarshal(payload, &record)
+  if err != nil {
+    return nil, err
+  }
+  return &record, err
+}
+
 func main() {
-  result, _ := getContent("http://google.com")
+  username := "bsodmike"
+  record, _ := GetGithubUser(username)
   fmt.Printf("Output\n")
-  fmt.Printf(string(result))
+  fmt.Printf("Info for Github user '%s':\n%v\n", username, record)
 }
 
